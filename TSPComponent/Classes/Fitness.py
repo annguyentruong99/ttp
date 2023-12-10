@@ -22,6 +22,8 @@ class Fitness:
             return min_speed
 
     def calculate_cost(tour, packing_plan, variables, distance_matrix, profit_table):
+        profit_table['Picked'] = packing_plan_example
+
         dimension = variables['dimension']
         max_speed = variables['max_speed']
 
