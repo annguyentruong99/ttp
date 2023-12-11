@@ -1,6 +1,7 @@
 import random
 from itertools import product
 import numpy as np
+import logging
 from utils import list_text_files, save_to_file
 from KPComponent.solve_kp import solve_kp
 from TSPComponent.ga import run_ga
@@ -13,6 +14,7 @@ from Classes.EliteDivision import EliteDivision
 from Classes.Crossover import Crossover
 from Classes.Repair import Repair
 
+logging.basicConfig(filename='nic_log.log', level=logging.INFO, format='%(asctime)s - %(levelname)s: %(message)s')
 
 def main():
     TERMINATION_CRITERION = 5000
@@ -54,6 +56,8 @@ def main():
         kp_capacity = variables['knapsack_capacity']
 
         best_kp_sol = solve_kp(weights, profits, kp_capacity)
+
+        logging.info(f"Initializing population for instance {instance}")
 
         """
         Find the best solution for TSP
@@ -182,6 +186,10 @@ def main():
                     profit_table=profit_matrix
                 ).calculate_cost() for phenotype in repaired]
                 results.append(evaluation)
+
+                logging.info(f"Iteration {i + 1} completed for instance {instance}, "
+                             f"NUM_POP={NUM_POP}, NUM_ELITE={NUM_ELITE}")
+
             stripped_instance = instance.strip('./instances/').strip('.txt')
             save_to_file(results, file_name=f'./results/{stripped_instance}/{NUM_POP}_{NUM_ELITE}.txt')
 
