@@ -38,7 +38,7 @@ class Fitness:
 
             time_to_travel = distance / current_velocity
 
-            if i < len(self.packing_plan):
+            if i < len(self.packing_plan) and to_city!=1:
                 picked_item_weight = (self.profit_table[(self.profit_table['Assigned_Node'] == to_city)]['Weight'] * self.profit_table[(self.profit_table['Assigned_Node'] == to_city)]['Picked']).values[0]
                 current_weight += picked_item_weight
 
