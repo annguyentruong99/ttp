@@ -11,7 +11,7 @@ class Population(Encode):
         rand_initial_pop = np.array(
             [
                 np.append(
-                    np.random.random(len(best_tsp_sol) - 1),
+                    np.random.random(len(best_tsp_sol)),
                     np.random.random(len(best_kp_sol))
                 ) for _ in range(num_initial_pop)
             ]

@@ -92,7 +92,7 @@ def main():
         division_pop = [{
             'individual': individual,
             'fitness': Fitness(
-                tour=decoded_ind[0].tolist(),
+                tour=np.insert((decoded_ind[0][decoded_ind[0]!=1]), 0, 1).tolist(),
                 packing_plan=decoded_ind[1].tolist(),
                 variables=variables,
                 distance_matrix=distance_matrix,
