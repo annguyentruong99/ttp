@@ -6,15 +6,17 @@ from TSPComponent.ga import run_ga
 
 from Classes.Parser import Parser
 from Classes.Population import Population
-from Classes.Encode import Encode
 from Classes.Decode import Decode
 from Classes.Fitness import Fitness
 from Classes.EliteDivision import EliteDivision
 from Classes.Crossover import Crossover
+from Classes.Repair import Repair
+
 
 def main():
+    TERMINATION_CRITERION = 5000
     RAND_SEED = 234
-    num_population = 100
+    NUM_POP = 100
 
     # Get all test instances
     test_instances = list_text_files('./instances')
@@ -70,7 +72,7 @@ def main():
         Initial population
         """
         init_pop = Population(
-            100,
+            NUM_POP,
             RAND_SEED,
             best_tsp_sol,
             best_kp_sol,
@@ -86,14 +88,16 @@ def main():
         2. Divide into elite and non-elite
         -----------------------
         """
+        # Decode each genotype solution
         decoded_pop = [
             Decode(genotype, num_cities, num_items).decode() for genotype in init_pop
         ]
 
+        # Prepare the solution to be passed into EliteDivision
         division_pop = [{
             'individual': individual,
             'fitness': Fitness(
-                tour=np.insert((decoded_ind[0][decoded_ind[0]!=1]), 0, 1).tolist(),
+                tour=np.insert((decoded_ind[0][decoded_ind[0] != 1]), 0, 1).tolist(),
                 packing_plan=decoded_ind[1].tolist(),
                 variables=variables,
                 distance_matrix=distance_matrix,
@@ -105,28 +109,60 @@ def main():
             'crowding_distance': 0
         } for individual, decoded_ind in zip(init_pop, decoded_pop)]
 
+        # Initiate EliteDivision class
         elite_division = EliteDivision(20, division_pop)
 
+        # Split the population to elites and non-elites
         elites, non_elites = elite_division.nsga_ii_survival_selection()
 
-        print(len(elites), len(non_elites))
+        """
+        -----------------------
+        3. Perform biased crossover
+        -----------------------
+        """
+        # Randomly select elite and non-elite genotypes
+        elite_individual = random.choice(elites)
+        non_elite_individual = random.choice(non_elites)
 
-        elites_individual = random.choice(elites)
-        non_elites_individual = random.choice(non_elites)
-
+        # Perform the biased crossover
         offspring = Crossover(rho_e=0.7,
-                            elite_solution=elites_individual['individual'],
-                            non_elite_solution=non_elites_individual['individual'],
-                            crossover_type='biased').perform_crossover()
+                              elite_solution=elite_individual['individual'],
+                              non_elite_solution=non_elite_individual['individual'],
+                              crossover_type='biased'
+                              ).perform_crossover()
 
+        """
+        -----------------------
+        4. Create new population
+        -----------------------
+        """
+        # Map the individuals from elites
         elites = [x['individual'].tolist() for x in elites]
+        # Add the crossovered offspring into elites
         elites.append(offspring)
+        # Generate random individuals to fill up the remaining spaces
+        elites = elites + [
+            np.append(
+                np.random.random(num_cities),
+                np.random.random(num_items)).tolist() for _ in range(NUM_POP - len(elites)
+                )
+        ]
 
-        elites = elites = elites + [np.append(
-            np.random.random(num_cities),
-            np.random.random(num_items)).tolist() for _ in range(num_population - len(elites))]
-        print('lol')
-
+        """
+        -----------------------
+        5. Repair the solutions with total weight higher than knapsack capacity
+        -----------------------
+        """
+        repaired = []
+        for genotype in elites:
+            repair = Repair(
+                np.array(genotype),
+                profit_matrix,
+                num_cities,
+                num_items,
+                kp_capacity
+            )
+            repaired.append(repair.repair())
 
 
 if __name__ == '__main__':

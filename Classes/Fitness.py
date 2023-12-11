@@ -38,11 +38,11 @@ class Fitness:
 
             time_to_travel = distance / current_velocity
 
-            print(f"At city {from_city}:")
-            print(f"  Knapsack weight before picking: {current_weight}")
-            print(f"  Current velocity: {current_velocity}")
-            print(f"  Distance to next city ({to_city}): {distance}")
-            print(f"  Time to travel: {time_to_travel}")
+            # print(f"At city {from_city}:")
+            # print(f"  Knapsack weight before picking: {current_weight}")
+            # print(f"  Current velocity: {current_velocity}")
+            # print(f"  Distance to next city ({to_city}): {distance}")
+            # print(f"  Time to travel: {time_to_travel}")
 
             if i < len(self.packing_plan):
                 picked_item_weight = (self.profit_table[(self.profit_table['Assigned_Node'] == to_city)]['Weight'] * self.profit_table[(self.profit_table['Assigned_Node'] == to_city)]['Picked']).values[0]

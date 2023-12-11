@@ -7,42 +7,42 @@ class Crossover:
         self.non_elite_solution = non_elite_solution
         self.crossover_type = crossover_type
 
-    def biased_crossover(self, elite_parent, non_elite_parent):
+    def biased_crossover(self):
         # Ensure both parents have the same length
-        assert len(elite_parent) == len(non_elite_parent)
+        assert len(self.elite_solution) == len(self.non_elite_solution)
 
         offspring = []
 
-        for i in range(len(elite_parent)):
+        for i in range(len(self.elite_solution)):
             # Generate a random number between 0 and 1
             rand_value = random.random()
 
             # Determine whether to inherit from the elite parent or non-elite parent
             if rand_value <= self.rho_e:
-                offspring.append(elite_parent[i])
+                offspring.append(self.elite_solution[i])
             else:
-                offspring.append(non_elite_parent[i])
+                offspring.append(self.non_elite_solution[i])
 
         return offspring
 
-    def single_point_crossover(self, elite_parent, non_elite_parent):
+    def single_point_crossover(self):
         # Perform single-point crossover between two candidates
-        crossover_point = random.randint(1, len(elite_parent) - 1)
-        offspring1 = elite_parent[:crossover_point] + non_elite_parent[crossover_point:]
-        offspring2 = non_elite_parent[:crossover_point] + elite_parent[crossover_point:]
-        offspring1 = self.repair_offspring(offspring1, elite_parent)
-        offspring2 = self.repair_offspring(offspring2, non_elite_parent)
+        crossover_point = random.randint(1, len(self.elite_solution) - 1)
+        offspring1 = self.elite_solution[:crossover_point] + self.non_elite_solution[crossover_point:]
+        offspring2 = self.non_elite_solution[:crossover_point] + self.elite_solution[crossover_point:]
+        offspring1 = self.repair_offspring(offspring1, self.elite_solution)
+        offspring2 = self.repair_offspring(offspring2, self.non_elite_solution)
         return offspring1, offspring2
 
-    def ordered_crossover(self, elite_parent, non_elite_parent):
+    def ordered_crossover(self):
         # Perform ordered crossover between two parents
-        crossover_points = sorted(random.sample(range(len(elite_parent)), 2))
-        offspring1 = [None] * len(elite_parent)
-        offspring2 = [None] * len(elite_parent)
-        offspring1[crossover_points[0]:crossover_points[1] + 1] = elite_parent[crossover_points[0]:crossover_points[1] + 1]
-        offspring2[crossover_points[0]:crossover_points[1] + 1] = non_elite_parent[crossover_points[0]:crossover_points[1] + 1]
-        remaining_elements1 = [gene for gene in non_elite_parent if gene not in offspring1]
-        remaining_elements2 = [gene for gene in elite_parent if gene not in offspring2]
+        crossover_points = sorted(random.sample(range(len(self.elite_solution)), 2))
+        offspring1 = [None] * len(self.elite_solution)
+        offspring2 = [None] * len(self.elite_solution)
+        offspring1[crossover_points[0]:crossover_points[1] + 1] = self.elite_solution[crossover_points[0]:crossover_points[1] + 1]
+        offspring2[crossover_points[0]:crossover_points[1] + 1] = self.non_elite_solution[crossover_points[0]:crossover_points[1] + 1]
+        remaining_elements1 = [gene for gene in self.non_elite_solution if gene not in offspring1]
+        remaining_elements2 = [gene for gene in self.elite_solution if gene not in offspring2]
         offspring_index1 = crossover_points[1] + 1
         offspring_index2 = crossover_points[1] + 1
 
@@ -51,19 +51,19 @@ class Crossover:
                 offspring1[offspring_index1] = gene1
             if offspring2[offspring_index2] is None:
                 offspring2[offspring_index2] = gene2
-            offspring_index1 = (offspring_index1 + 1) % len(elite_parent)
-            offspring_index2 = (offspring_index2 + 1) % len(elite_parent)
+            offspring_index1 = (offspring_index1 + 1) % len(self.elite_solution)
+            offspring_index2 = (offspring_index2 + 1) % len(self.elite_solution)
 
         return offspring1, offspring2
 
     def perform_crossover(self):
         # Perform crossover based on the specified type
         if self.crossover_type == 'fix':
-            return self.single_point_crossover(self.elite_solution, self.non_elite_solution)
+            return self.single_point_crossover()
         elif self.crossover_type == 'ordered':
-            return self.ordered_crossover(self.elite_solution, self.non_elite_solution)
+            return self.ordered_crossover()
         elif self.crossover_type == 'biased':
-            return self.biased_crossover(self.elite_solution, self.non_elite_solution)
+            return self.biased_crossover()
         else:
             raise ValueError("Invalid crossover type")
 
