@@ -39,4 +39,4 @@ class Population(Encode):
                 np.random.random(num_items)).tolist() for _ in range(num_pop - len(elites)
                                                                      )
         ]
-        self.pop = elites
+        self.pop = np.array(elites)
