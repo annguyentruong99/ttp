@@ -6,7 +6,10 @@ from TSPComponent.ga import run_ga
 
 from Classes.Parser import Parser
 from Classes.Population import Population
-from Classes.EncodeDecode import EncodeDecode
+from Classes.Encode import Encode
+from Classes.Decode import Decode
+from Classes.Fitness import Fitness
+from Classes.EliteDivision import EliteDivision
 
 
 def main():
@@ -53,7 +56,7 @@ def main():
         )
 
         best_tsp_sol = run_ga(
-            50,
+            10,
             4,
             2,
             0.8,
@@ -65,11 +68,6 @@ def main():
         """
         Initial population
         """
-        # encode_decode = EncodeDecode(best_tsp_sol, best_kp_sol)
-        # encoded_genotype = encode_decode.encode()
-        #
-        # print(encoded_genotype)
-
         init_pop = Population(
             100,
             RAND_SEED,
@@ -77,15 +75,41 @@ def main():
             best_kp_sol,
         ).initial_pop
 
+        # Number of cities
+        num_cities = len(distance_matrix)
+        # Number of items
+        num_items = len(weights)
+
         """
         -----------------------
         2. Divide into elite and non-elite
         -----------------------
         """
+        decoded_pop = [
+            Decode(genotype, num_cities, num_items).decode() for genotype in init_pop
+        ]
+
+        division_pop = [{
+            'individual': individual,
+            'fitness': Fitness(
+                tour=decoded_ind[0].tolist(),
+                packing_plan=decoded_ind[1].tolist(),
+                variables=variables,
+                distance_matrix=distance_matrix,
+                profit_table=profit_matrix,
+                min_speed=variables['min_speed'],
+                max_speed=variables['max_speed'],
+                capacity=kp_capacity
+            ).calculate_cost(),
+            'crowding_distance': 0
+        } for individual, decoded_ind in zip(init_pop, decoded_pop)]
+
+        elite_division = EliteDivision(20, division_pop)
+
+        elites, non_elites = elite_division.nsga_ii_survival_selection()
+
+        print(len(elites), len(non_elites))
 
 
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     main()
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/

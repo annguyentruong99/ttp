@@ -25,7 +25,7 @@ def init_population(
     # Set random seed
     np.random.seed(seed)
     return Population(
-        np.array([np.random.permutation(cities) for _ in range(n_pop)]),
+        np.array([np.insert(np.random.permutation(cities[cities != 1]), 0, 1) for _ in range(n_pop)]),
         distance_matrix
     )
 

@@ -1,9 +1,9 @@
 import numpy as np
 
-from Classes.EncodeDecode import EncodeDecode
+from Classes.Encode import Encode
 
 
-class Population(EncodeDecode):
+class Population(Encode):
     def __init__(self, num_initial_pop, seed, best_tsp_sol, best_kp_sol):
         super().__init__(best_tsp_sol, best_kp_sol)
         np.random.seed(seed)
@@ -11,7 +11,7 @@ class Population(EncodeDecode):
         rand_initial_pop = np.array(
             [
                 np.append(
-                    np.random.random(len(best_tsp_sol)),
+                    np.random.random(len(best_tsp_sol) - 1),
                     np.random.random(len(best_kp_sol))
                 ) for _ in range(num_initial_pop)
             ]

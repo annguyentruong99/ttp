@@ -9,7 +9,7 @@ class Fitness:
         self.distance_matrix = distance_matrix
         self.profit_table = profit_table
         self.min_speed = min_speed
-        self.max_speed = max_speed  # Changed from duplicate min_speed to max_speed
+        self.max_speed = max_speed
         self.capacity = capacity
         self.weight = 0
 
