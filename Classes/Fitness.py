@@ -25,6 +25,7 @@ class Fitness:
         max_speed = self.variables['max_speed']
         min_speed = self.variables['min_speed']
         capacity = self.variables['knapsack_capacity']
+        renting_ratio = self.variables['renting_ratio']
 
         total_time = 0
         current_velocity = max_speed
@@ -45,6 +46,6 @@ class Fitness:
 
             total_time += time_to_travel
 
-        total_profit = self.profit_table[self.profit_table['Picked'] == 1]['Profit'].sum()
+        total_profit = self.profit_table[self.profit_table['Picked'] == 1]['Profit'].sum() - (renting_ratio * total_time)
 
         return total_time, total_profit

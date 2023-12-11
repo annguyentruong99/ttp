@@ -1,6 +1,7 @@
-import numpy as np
-from utils import list_text_files
 import random
+from itertools import product
+import numpy as np
+from utils import list_text_files, save_to_file
 from KPComponent.solve_kp import solve_kp
 from TSPComponent.ga import run_ga
 
@@ -16,10 +17,14 @@ from Classes.Repair import Repair
 def main():
     TERMINATION_CRITERION = 5000
     RAND_SEED = 234
-    NUM_POP = 100
 
     # Get all test instances
     test_instances = list_text_files('./instances')
+
+    # Define possible parameters
+    init_pops = [100, 200, 500]
+    nums_elites = [30, 50]
+    parameters = product(init_pops, nums_elites)
 
     for instance in test_instances:
         parser = Parser(instance)
@@ -27,7 +32,7 @@ def main():
         # Instances variables dict
         variables = parser.parse_variables()
 
-        # Get node coordinates
+        # Get node coordinates & profit matrix
         node_coord, profit_matrix = parser.parse_file_parallel(variables['dimension'])
 
         """
@@ -40,7 +45,7 @@ def main():
         Find the best solution for KP
         """
         # Items dataframe
-        df_items = parser.parse_item_section(291, variables['dimension'])
+        df_items = parser.parse_item_section(10 + variables['dimension'] + 1, variables['dimension'])
         # Items weight array
         weights = df_items['Weight'].to_numpy()
         # Items profit array
@@ -59,7 +64,7 @@ def main():
         )
 
         best_tsp_sol = run_ga(
-            10,
+            250,
             4,
             2,
             0.8,
@@ -73,105 +78,112 @@ def main():
         # Number of items
         num_items = len(weights)
 
-        results = []
+        for param in parameters:
 
-        for i in range(TERMINATION_CRITERION):
-            """
-            Initial population
-            """
-            population = Population(
-                NUM_POP,
-                RAND_SEED,
-                best_tsp_sol,
-                best_kp_sol,
-            )
+            NUM_POP = param[0]
+            NUM_ELITE = param[1]
 
-            pop = population.pop
+            results = []
 
-            """
-            -----------------------
-            2. Divide into elite and non-elite
-            -----------------------
-            """
-            # Decode each genotype solution
-            decoded_pop = [
-                Decode(genotype, num_cities, num_items).decode() for genotype in pop
-            ]
+            for i in range(TERMINATION_CRITERION):
+                """
+                Initial population
+                """
+                population = Population(
+                    NUM_POP,
+                    RAND_SEED,
+                    best_tsp_sol,
+                    best_kp_sol,
+                )
 
-            # Prepare the solution to be passed into EliteDivision
-            division_pop = [{
-                'individual': individual,
-                'fitness': Fitness(
-                    tour=np.insert((decoded_ind[0][decoded_ind[0] != 1]), 0, 1).tolist(),
-                    packing_plan=decoded_ind[1].tolist(),
+                pop = population.pop
+
+                """
+                -----------------------
+                2. Divide into elite and non-elite
+                -----------------------
+                """
+                # Decode each genotype solution
+                decoded_pop = [
+                    Decode(genotype, num_cities, num_items).decode() for genotype in pop
+                ]
+
+                # Prepare the solution to be passed into EliteDivision
+                division_pop = [{
+                    'individual': individual,
+                    'fitness': Fitness(
+                        tour=np.insert((decoded_ind[0][decoded_ind[0] != 1]), 0, 1).tolist(),
+                        packing_plan=decoded_ind[1].tolist(),
+                        variables=variables,
+                        distance_matrix=distance_matrix,
+                        profit_table=profit_matrix
+                    ).calculate_cost(),
+                    'crowding_distance': 0
+                } for individual, decoded_ind in zip(pop, decoded_pop)]
+
+                # Initiate EliteDivision class
+                elite_division = EliteDivision(NUM_ELITE, division_pop)
+
+                # Split the population to elites and non-elites
+                elites, non_elites = elite_division.nsga_ii_survival_selection()
+
+                """
+                -----------------------
+                3. Perform biased crossover
+                -----------------------
+                """
+                # Randomly select elite and non-elite genotypes
+                elite_individual = random.choice(elites)
+                non_elite_individual = random.choice(non_elites)
+
+                # Perform the biased crossover
+                offspring = Crossover(rho_e=0.7,
+                                      elite_solution=elite_individual['individual'],
+                                      non_elite_solution=non_elite_individual['individual'],
+                                      crossover_type='biased'
+                                      ).perform_crossover()
+
+                """
+                -----------------------
+                4. Create new population
+                -----------------------
+                """
+                # Map the individuals from elites
+                elites = [x['individual'].tolist() for x in elites]
+                # Generate random individuals to fill up the remaining spaces
+                population.replacement(elites, offspring, num_cities, num_items, NUM_POP)
+
+                """
+                -----------------------
+                5. Repair the solutions with total weight higher than knapsack capacity
+                -----------------------
+                """
+                repaired = []
+                for genotype in elites:
+                    repair = Repair(
+                        np.array(genotype),
+                        profit_matrix,
+                        num_cities,
+                        num_items,
+                        kp_capacity
+                    )
+                    repaired.append(repair.repair())
+
+                """
+                -----------------------
+                6. Fitness Evaluation
+                -----------------------
+                """
+                evaluation = [Fitness(
+                    tour=np.insert((phenotype[0][phenotype[0] != 1]), 0, 1).tolist(),
+                    packing_plan=phenotype[1].tolist(),
                     variables=variables,
                     distance_matrix=distance_matrix,
                     profit_table=profit_matrix
-                ).calculate_cost(),
-                'crowding_distance': 0
-            } for individual, decoded_ind in zip(pop, decoded_pop)]
-
-            # Initiate EliteDivision class
-            elite_division = EliteDivision(20, division_pop)
-
-            # Split the population to elites and non-elites
-            elites, non_elites = elite_division.nsga_ii_survival_selection()
-
-            """
-            -----------------------
-            3. Perform biased crossover
-            -----------------------
-            """
-            # Randomly select elite and non-elite genotypes
-            elite_individual = random.choice(elites)
-            non_elite_individual = random.choice(non_elites)
-
-            # Perform the biased crossover
-            offspring = Crossover(rho_e=0.7,
-                                  elite_solution=elite_individual['individual'],
-                                  non_elite_solution=non_elite_individual['individual'],
-                                  crossover_type='biased'
-                                  ).perform_crossover()
-
-            """
-            -----------------------
-            4. Create new population
-            -----------------------
-            """
-            # Map the individuals from elites
-            elites = [x['individual'].tolist() for x in elites]
-            # Generate random individuals to fill up the remaining spaces
-            population.replacement(elites, offspring, num_cities, num_items, NUM_POP)
-
-            """
-            -----------------------
-            5. Repair the solutions with total weight higher than knapsack capacity
-            -----------------------
-            """
-            repaired = []
-            for genotype in elites:
-                repair = Repair(
-                    np.array(genotype),
-                    profit_matrix,
-                    num_cities,
-                    num_items,
-                    kp_capacity
-                )
-                repaired.append(repair.repair())
-
-            """
-            -----------------------
-            6. Fitness Evaluation
-            -----------------------
-            """
-            evaluation = [Fitness(
-                tour=np.insert((phenotype[0][phenotype[0] != 1]), 0, 1).tolist(),
-                packing_plan=phenotype[1].tolist(),
-                variables=variables,
-                distance_matrix=distance_matrix,
-                profit_table=profit_matrix
-            ).calculate_cost() for phenotype in repaired]
-            results.append(evaluation)
+                ).calculate_cost() for phenotype in repaired]
+                results.append(evaluation)
+            stripped_instance = instance.strip('./instances/').strip('.txt')
+            save_to_file(results, file_name=f'./results/{stripped_instance}/{NUM_POP}_{NUM_ELITE}.txt')
 
 
 if __name__ == '__main__':
