@@ -46,6 +46,6 @@ class Fitness:
 
             total_time += time_to_travel
 
-        total_profit = self.profit_table[self.profit_table['Picked'] == 1]['Profit'].sum() - (renting_ratio * total_time)
+        total_profit = self.profit_table[self.profit_table['Picked'] == 1]['Profit'].sum()
 
         return total_time, total_profit
