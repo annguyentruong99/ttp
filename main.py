@@ -23,6 +23,15 @@ def main():
     # Get all test instances
     test_instances = list_text_files('./instances')
 
+    # If there are multiple test instances, ask the user to choose one
+    if len(test_instances) > 1:
+        print("Please select a file to run:")
+        for idx, instance in enumerate(test_instances):
+            print(f"{idx}: {instance}")
+        selected_index = int(input("Enter the number of the file you want to run: "))
+        # Keep only the selected file in test_instances
+        test_instances = [test_instances[selected_index]]
+
     # Define possible parameters
     init_pops = [100, 200, 500]
     nums_elites = [30, 50]
