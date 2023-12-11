@@ -62,7 +62,7 @@ class Parser:
         for line in self.lines[start_line:start_line + dimension]:
             index, profit, weight, assigned_node = map(int, line.split())
             data.append({'Index': index, 'Profit': profit, 'Weight': weight, 'Assigned_Node': assigned_node})
-        return pd.DataFrame(data)
+        return pd.DataFrame(data).groupby('Assigned_Node').agg({'Profit':'sum','Weight':'sum'}).reset_index()
 
     def parse_file_parallel(self, dimension):
         """
