@@ -56,14 +56,14 @@ class Crossover:
 
         return offspring1, offspring2
 
-    def perform_crossover(self, elite_parent, non_elite_parent):
+    def perform_crossover(self):
         # Perform crossover based on the specified type
         if self.crossover_type == 'fix':
-            return self.single_point_crossover(elite_parent, non_elite_parent)
+            return self.single_point_crossover(self.elite_solution, self.non_elite_solution)
         elif self.crossover_type == 'ordered':
-            return self.ordered_crossover(elite_parent, non_elite_parent)
+            return self.ordered_crossover(self.elite_solution, self.non_elite_solution)
         elif self.crossover_type == 'biased':
-            return self.biased_crossover(elite_parent, non_elite_parent)
+            return self.biased_crossover(self.elite_solution, self.non_elite_solution)
         else:
             raise ValueError("Invalid crossover type")
 

@@ -1,6 +1,6 @@
 import numpy as np
 from utils import list_text_files
-
+import random
 from KPComponent.solve_kp import solve_kp
 from TSPComponent.ga import run_ga
 
@@ -10,10 +10,11 @@ from Classes.Encode import Encode
 from Classes.Decode import Decode
 from Classes.Fitness import Fitness
 from Classes.EliteDivision import EliteDivision
-
+from Classes.Crossover import Crossover
 
 def main():
     RAND_SEED = 234
+    num_population = 100
 
     # Get all test instances
     test_instances = list_text_files('./instances')
@@ -109,6 +110,23 @@ def main():
         elites, non_elites = elite_division.nsga_ii_survival_selection()
 
         print(len(elites), len(non_elites))
+
+        elites_individual = random.choice(elites)
+        non_elites_individual = random.choice(non_elites)
+
+        offspring = Crossover(rho_e=0.7,
+                            elite_solution=elites_individual['individual'],
+                            non_elite_solution=non_elites_individual['individual'],
+                            crossover_type='biased').perform_crossover()
+
+        elites = [x['individual'].tolist() for x in elites]
+        elites.append(offspring)
+
+        elites = elites = elites + [np.append(
+            np.random.random(num_cities),
+            np.random.random(num_items)).tolist() for _ in range(num_population - len(elites))]
+        print('lol')
+
 
 
 if __name__ == '__main__':
