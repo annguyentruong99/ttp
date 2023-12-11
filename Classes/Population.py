@@ -17,7 +17,20 @@ class Population(Encode):
             ]
         )
         encoded_genotype = self.encode()
-        self.initial_pop = np.vstack([
+        self.pop = np.vstack([
             rand_initial_pop,
             encoded_genotype
         ])
+
+    def replacement(self, elites, offspring, num_cities, num_items, num_pop):
+        # Add the crossovered offspring into elites
+        elites.append(offspring)
+        # Generate random individuals to fill up the remaining spaces
+        elites = elites + [
+            np.append(
+                np.random.random(num_cities),
+                np.random.random(num_items)).tolist() for _ in range(num_pop - len(elites)
+            )
+        ]
+        self.pop = elites
+
