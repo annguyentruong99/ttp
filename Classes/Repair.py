@@ -1,8 +1,9 @@
+import numpy as np
 import Decode
 class Repair(Decode):
 
     def __init__(self, genotype, profit_table, num_cities, num_items, capacity):
-        super.__init__(genotype,num_cities, num_items)
+        super.__init__(genotype, num_cities, num_items)
         self.genotype = genotype
         self.profit_table = profit_table
         self.capacity = capacity
@@ -46,3 +47,20 @@ class Repair(Decode):
                 current_weight -= weights[(tour[i]-2)]
 
         return self.genotype
+    def validate_repair(self):
+        for i, sol in enumerate(self.genotype):
+            packing_plan = self.get_packing_plan(sol)
+            self.profit_table[f'Picked_{i}'] = packing_plan
+
+        for i in range(len(self.genotype)):
+            if (self.profit_table[self.profit_table[f'Picked_{i}'] == 1]['Weight'].sum()) > self.capacity:
+                print('the following indexes need to be repaired', i)
+
+
+
+    def get_packing_plan(self):
+        self.genotype = np.array(self.genotype)
+        half_length = len(self.genotype) // 2
+        second_half = self.genotype[half_length+1:]
+        packing_plan = np.where(second_half > 0.5, 1, 0)
+        return packing_plan
