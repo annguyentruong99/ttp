@@ -17,7 +17,7 @@ from Classes.Repair import Repair
 logging.basicConfig(filename='nic_log.log', level=logging.INFO, format='%(asctime)s - %(levelname)s: %(message)s')
 
 def main():
-    TERMINATION_CRITERION = 5000
+    TERMINATION_CRITERION = 100
     RAND_SEED = 234
 
     # Get all test instances
@@ -89,17 +89,19 @@ def main():
 
             results = []
 
-            for i in range(TERMINATION_CRITERION):
-                """
-                Initial population
-                """
-                population = Population(
-                    NUM_POP,
-                    RAND_SEED,
-                    best_tsp_sol,
-                    best_kp_sol,
-                )
+            """
+            Initial population
+            """
+            population = Population(
+                NUM_POP,
+                RAND_SEED,
+                best_tsp_sol,
+                best_kp_sol,
+            )
 
+            population.init_pop()
+
+            for i in range(TERMINATION_CRITERION):
                 pop = population.pop
 
                 """
