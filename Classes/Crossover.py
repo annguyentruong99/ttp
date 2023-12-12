@@ -1,6 +1,5 @@
 import random
 
-
 class Crossover:
     def __init__(self, rho_e, elite_solution, non_elite_solution, crossover_type):
         self.rho_e = rho_e
@@ -40,10 +39,8 @@ class Crossover:
         crossover_points = sorted(random.sample(range(len(self.elite_solution)), 2))
         offspring1 = [None] * len(self.elite_solution)
         offspring2 = [None] * len(self.elite_solution)
-        offspring1[crossover_points[0]:crossover_points[1] + 1] = self.elite_solution[
-                                                                  crossover_points[0]:crossover_points[1] + 1]
-        offspring2[crossover_points[0]:crossover_points[1] + 1] = self.non_elite_solution[
-                                                                  crossover_points[0]:crossover_points[1] + 1]
+        offspring1[crossover_points[0]:crossover_points[1] + 1] = self.elite_solution[crossover_points[0]:crossover_points[1] + 1]
+        offspring2[crossover_points[0]:crossover_points[1] + 1] = self.non_elite_solution[crossover_points[0]:crossover_points[1] + 1]
         remaining_elements1 = [gene for gene in self.non_elite_solution if gene not in offspring1]
         remaining_elements2 = [gene for gene in self.elite_solution if gene not in offspring2]
         offspring_index1 = crossover_points[1] + 1
