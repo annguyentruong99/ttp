@@ -112,3 +112,6 @@
 2023-12-11 20:31:54,339 - INFO: Iteration 26 completed for instance ./instances/a280-n2790.txt, NUM_POP=100, NUM_ELITE=30
 2023-12-11 20:32:02,947 - INFO: Iteration 27 completed for instance ./instances/a280-n2790.txt, NUM_POP=100, NUM_ELITE=30
 2023-12-11 20:32:11,512 - INFO: Iteration 28 completed for instance ./instances/a280-n2790.txt, NUM_POP=100, NUM_ELITE=30
+2023-12-12 01:07:22,341 - INFO: Initializing population for instance ./instances/a280-n279.txt
+2023-12-12 01:08:04,193 - INFO: Iteration 1 completed for instance ./instances/a280-n279.txt, NUM_POP=100, NUM_ELITE=30
+2023-12-12 01:08:43,257 - INFO: Iteration 2 completed for instance ./instances/a280-n279.txt, NUM_POP=100, NUM_ELITE=30

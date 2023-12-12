@@ -3,8 +3,6 @@ from itertools import product
 import numpy as np
 import logging
 from utils import list_text_files, save_to_file
-from KPComponent.solve_kp import solve_kp
-from TSPComponent.ga import run_ga
 
 from Classes.Parser import Parser
 from Classes.Population import Population
@@ -15,6 +13,7 @@ from Classes.Crossover import Crossover
 from Classes.Repair import Repair
 
 logging.basicConfig(filename='nic_log.log', level=logging.INFO, format='%(asctime)s - %(levelname)s: %(message)s')
+
 
 def main():
     TERMINATION_CRITERION = 100
@@ -59,12 +58,8 @@ def main():
         df_items = parser.parse_item_section(10 + variables['dimension'] + 1, variables['dimension'])
         # Items weight array
         weights = df_items['Weight'].to_numpy()
-        # Items profit array
-        profits = df_items['Profit'].to_numpy()
         # Knapsack capacity
         kp_capacity = variables['knapsack_capacity']
-
-        best_kp_sol = solve_kp(weights, profits, kp_capacity)
 
         logging.info(f"Initializing population for instance {instance}")
 
@@ -74,16 +69,6 @@ def main():
         # Distance matrix
         distance_matrix = np.array(
             parser.calculate_distance_matrix(node_coord)
-        )
-
-        best_tsp_sol = run_ga(
-            250,
-            4,
-            2,
-            0.8,
-            2,
-            0.02,
-            distance_matrix
         )
 
         # Number of cities
@@ -104,8 +89,8 @@ def main():
             population = Population(
                 NUM_POP,
                 RAND_SEED,
-                best_tsp_sol,
-                best_kp_sol,
+                num_cities,
+                num_items
             )
 
             population.init_pop()
@@ -166,7 +151,7 @@ def main():
                 # Map the individuals from elites
                 elites = [x['individual'].tolist() for x in elites]
                 # Generate random individuals to fill up the remaining spaces
-                population.replacement(elites, offspring, num_cities, num_items, NUM_POP)
+                population.replacement(elites, offspring, NUM_POP)
 
                 """
                 -----------------------
